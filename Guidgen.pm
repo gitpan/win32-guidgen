@@ -28,46 +28,45 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw(
 create
 );
-our $VERSION = '0.02';
+our $VERSION = '0.04';
 
-# Preloaded methods go here.
 sub create {
-	#
-	# defintion of GUID structure
-	#
-	# typedef struct _GUID {
-	#	DWORD	data1;
-	#	WORD	data2;
-	#	WORD	data3;
-	#	BYTE	data4[8];
-	# } GUID;
-	#
-	my $p_guid = pack("LIIC8", 0,0,0,0);
+    return _gen();
+}
 
-	my $CoCreateGuid = new Win32::API("ole32.dll", "CoCreateGuid", ["P"], "N");
+sub gen {
+    return _gen();
+}
 
-	die "Could not create CoCreateGuid API call variable: $!\n" unless defined $CoCreateGuid;
+sub generate {
+	return _gen();
+}
 
-	my $rc1 = $CoCreateGuid->Call($p_guid);
-	
-	# CoCreateGuid returns 0 on success
-	if (! $rc1 ) {
-		my $p_guidstr = pack("S39", 0);
-		my $StringFromGuid = new Win32::API("ole32.dll", "StringFromGUID2", ["P", "P", "N"], "N");
-		die "Could not create StringFromGuid API call variable: $!\n" unless defined $StringFromGuid;
-		
-		my $rc2 = $StringFromGuid->Call($p_guid, $p_guidstr, 39);
-		
-		if ($rc2) {
-			my @chars = unpack("S$rc2", $p_guidstr);
-			my $guid;
-			foreach my $char (@chars) {
-				$guid .= chr($char) unless $char == 0;
-			}
-			return $guid;
-		}
-	}
-
+sub _gen {
+    my $UuidCreate = new Win32::API('rpcrt4', 'UuidCreate', 'P', 'N');
+    die 'Could not load UuidCreate from rpcrt4.dll' unless $UuidCreate;
+    
+    my $UuidToString = new Win32::API('rpcrt4', 'UuidToString', 'PP', 'N');
+    die 'Could not load UuidToString from rpcrt4.dll' unless $UuidToString;
+    
+    my $RpcStringFree = new Win32::API('rpcrt4', 'RpcStringFree', 'P', 'N');
+    die 'Could not load RpcStringFree from rpcrt4.dll' unless $RpcStringFree;
+ 
+    my $uuid = "*" x 16; # Allocate enough space to store the uuid structure
+    
+    my $ret = $UuidCreate->Call( $uuid );
+    die "UuidCreate failed with error: $ret" unless $ret == 0;
+ 
+    my $ptr_str = pack("P",0);
+    $ret = $UuidToString->Call( $uuid, $ptr_str );
+    die "UuidToString failed with error: $ret" unless $ret == 0;
+ 
+    my $guid_str = unpack( "p", $ptr_str );
+ 
+    $ret = $RpcStringFree->Call( $ptr_str );
+    die "RpcStringFree failed with error: $ret" unless $ret == 0;
+ 
+    return '{' . uc($guid_str) . '}';
 }
 
 1;
@@ -84,14 +83,20 @@ Win32::Guidgen - Perl extension that generates GUID strings.
 
 	my $guid = Win32::Guidgen::create();
 	print "New GUID is $guid\n";
+	
+    my $guid = Win32::Guidgen::gen();
+	print "New GUID is $guid\n";
+	
+    my $guid = Win32::Guidgen::generate();
+	print "New GUID is $guid\n";
 
 =head1 DESCRIPTION
 
 Win32::Guidgen generate Generates Globally Unique Identifiers (B<GUIDs>).
 
-Its one method, C<create()>, returns a string formatted like the following sample:
+It exposes 3 methods: C<create()>, C<gen()> and C<generate()>, which all return a string formatted like the following sample:
 
-{c200e360-38c5-11ce-ae62-08002b2b79ef} 
+{C200E360-38C5-11CE-AE62-08002B2B79EF} 
 
 where the successive fields break the B<GUID> into the form C<DWORD>-C<WORD>-C<WORD>-C<WORD>-C<WORD>.C<DWORD> covering the 128-bit B<GUID>. 
 The string includes enclosing braces, which are an OLE convention.
@@ -102,7 +107,7 @@ None by default.
 
 =head1 INSTALLATION
 
-You install C<VCS::StarTeam>, as you would install any perl module library,
+You install C<Win32::Guidgen>, as you would install any perl module library,
 by running these commands:
 
 	perl Makefile.PL
@@ -113,7 +118,8 @@ by running these commands:
 
 =head1 AUTHOR
 
-C<Win32::Guidgen> was written by Joe P. Hayes I<E<lt>jhayes@juicesoftware.comE<gt>> in 2001.
+C<Win32::Guidgen> was written by Joe P. Hayes I<E<lt>joephayes@_NOSPAM_yahoo.comE<gt>> (Take out '_NOSPAM_', to send.) in 2001.
+Neil Hunt I<E<lt>neilh@_NOSPAM_thehunts.id.au<gt>>> contributed a new version of the GUID generator in 2004.
 
 =head1 LICENSE
 

@@ -11,8 +11,8 @@ SYNOPSIS
 DESCRIPTION
     Win32::Guidgen generate Generates Globally Unique Identifiers (GUIDs).
 
-    Its one method, `create()', returns a string formatted like the
-    following sample:
+    It exposes 3 methods: C<create()>, C<gen()> and C<generate()>, which 
+	all return a string formatted like the following sample:
 
     {c200e360-38c5-11ce-ae62-08002b2b79ef}
 
@@ -25,7 +25,7 @@ DESCRIPTION
     None by default.
 
 INSTALLATION
-    You install `VCS::StarTeam', as you would install any perl module
+    You install `Win32::Guidgen', as you would install any perl module
     library, by running these commands:
 
             perl Makefile.PL
@@ -35,7 +35,10 @@ INSTALLATION
 
 AUTHOR
     `Win32::Guidgen' was written by Joe P. Hayes
-    *<jhayes@juicesoftware.com>* in 2001.
+    *<joephayes@_NOSPAM_yahoo.com>* (Take out '_NOSPAM_', to send) in 2001.
+	
+	Neil Hunt *<neilh@_NOSPAM_thehunts.id.au>* (Take out '_NOSPAM_', to send)
+	contributed a new version of the GUID generator in 2004.
 
 LICENSE
     The `Win32::Guidgen' module is Copyright (c) 2001 Joe P. Hayes. All

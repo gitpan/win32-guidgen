@@ -6,7 +6,7 @@
 # Change 1..1 below to 1..last_test_to_print .
 # (It may become useful if the test is moved to ./t subdirectory.)
 
-BEGIN { $| = 1; print "1..2\n"; }
+BEGIN { $| = 1; print "1..4\n"; }
 END {print "not ok 1\n" unless $loaded;}
 use Win32::Guidgen;
 $loaded = 1;
@@ -21,3 +21,11 @@ use Win32::Guidgen;
 my $guid = Win32::Guidgen::create();
 print "$guid\n";
 print "ok 2\n";
+
+my $guid = Win32::Guidgen::gen();
+print "$guid\n";
+print "ok 3\n";
+
+my $guid = Win32::Guidgen::generate();
+print "$guid\n";
+print "ok 4\n";
